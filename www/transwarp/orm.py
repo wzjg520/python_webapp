@@ -32,10 +32,10 @@ class Field(object):
 
     def __str__(self):
         s = ['<%s:%s,%s,default(%s),' % (
-            self, __class__.__name__, self.name, self.ddl, self._default)]
+            self.__class__.__name__, self.name, self.ddl, self._default)]
         self.nullable and s.append('N')
-        self.updateable = s.append('U')
-        self.insertable = s.append('I')
+        self.updateable and s.append('U')
+        self.insertable and s.append('I')
         s.append('>')
         return ''.join(s)
 
@@ -123,6 +123,7 @@ def _gen_sql(table_name, mapppings):
                    (f.name, ddl) or ' `%s` %s not null,' % (f.name, ddl))
     sql.append(' primary key (`%s`)' % pk)
     sql.append(');')
+    logging.warning(sql)
     return '\n'.join(sql)
 
 
@@ -164,22 +165,27 @@ class ModelMetaclass(type):
                             'NOTE: change primary key to non-nullable.')
                         v.nullable = False
                     primary_key = v
-                mapping[k] = v
+                mappings[k] = v
 
         if not primary_key:
             raise TypeError('Primary key not defined in class:%s' % name)
         for k in mappings.iterkeys():
             attrs.pop(k)
-        if not '__table__' in attr:
+
+        #print attrs
+
+        if not '__table__' in attrs:
             attrs['__table__'] = name.lower()
         attrs['__mappings__'] = mappings
-        attr['__primary_key__'] = primary_key
-        attr['__sql__'] = lambda self: _gen_sql(attrs['__table__'], mapppings)
+        attrs['__primary_key__'] = primary_key
+        attrs['__sql__'] = lambda self: _gen_sql(attrs['__table__'], mappings)
 
         for trigger in _triggers:
-            if not trigger in attr:
+            if not trigger in attrs:
                 attrs[trigger] = None
-        return type.__new__(cls, name, bases, attr)
+
+        #print attrs
+        return type.__new__(cls, name, bases, attrs)
 
 
 class Model(dict):
@@ -227,7 +233,7 @@ class Model(dict):
 
     @classmethod
     def count_by(cls, where, *args):
-        return db.select.int('select count(`%s`) from `%s` %s' % (cls.__primary_key__.name, cls.__table__, where), *args)
+        return db.select_int('select count(`%s`) from `%s` %s' % (cls.__primary_key__.name, cls.__table__, where), *args)
 
     def update(self):
         self.pre_upate and self.pre_update()
@@ -265,6 +271,7 @@ class Model(dict):
                 if not hasattr(self, k):
                     setattr(self, k, v.default)
                 params[v.name] = getattr(self, k)
+
         db.insert('%s' % self.__table__, **params)
         return self
 
@@ -272,4 +279,4 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     db.create_engine('root', 'QQQQQQ', 'test')
     db.update('drop table if exists user')
-    db.update('create table user(id int primary_key, name text,email text,passwd text,last_modified real)')
+    db.update('create table user(id int primary key, name text,email text,passwd text,last_modified real)')
