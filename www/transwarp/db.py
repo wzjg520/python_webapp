@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 # coding=utf-8
-
-__author__ = 'John Wang'
-
-'''
-底层数据库操作模块
-'''
-
 import time
 import uuid
 import functools
 import threading
 import logging
 
+__author__ = 'John Wang'
+
+'''
+底层数据库操作模块
+'''
 
 class Dict(dict):
 
