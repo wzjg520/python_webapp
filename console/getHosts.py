@@ -7,6 +7,7 @@ import urllib2
 import platform
 import logging
 import re
+import time
 
 class hosts(object):
 
@@ -72,7 +73,8 @@ if __name__ == '__main__':
     Hosts = hosts()
     Hosts.cleanLocalHostsFile(osType)
     Hosts.getHostsFile(osType)
-    
+    logging.info('this window will be closed after 5s')
+    time.sleep(5)
 
 
 
