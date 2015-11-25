@@ -71,9 +71,14 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     osType = platform.system()
     Hosts = hosts()
-    Hosts.cleanLocalHostsFile(osType)
-    Hosts.getHostsFile(osType)
-    logging.info('this window will be closed after 5s')
+    try:
+        Hosts.cleanLocalHostsFile(osType)
+        Hosts.getHostsFile(osType)
+    except:
+        logging.error('no permission to modify the hosts file.')
+        exit()
+
+    logging.info('this window will be closed after 5s.')
     time.sleep(5)
 
 
