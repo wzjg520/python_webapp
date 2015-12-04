@@ -3,11 +3,14 @@ __author__ = 'John Wang'
 
 #requirement:python2.7
 
-import urllib2
 import platform
 import logging
 import re
 import time
+try:
+    import urllib2
+except ImportError:
+    import urllib.request
 
 class hosts(object):
 
@@ -17,26 +20,30 @@ class hosts(object):
     }
 
     def __init__(self):
-        self.reposUrl = 'https://github.com/racaljk/hosts'
+        self.website = 'https://www.wzjg520.com/'
 
     def getRaw(self, url):
         header ={
                 'User-Agent':'Mozilla/5.0 (Windows NT 6.2; rv:16.0) Gecko/20100101 Firefox/16.0'
         }
-        request = urllib2.Request(url,headers=header)
-        response = urllib2.urlopen(request)
-        return response.read()
+
+        try:
+            request = urllib2.Request(url,headers=header)
+            response = urllib2.urlopen(request)
+        except:
+            request = urllib.request.Request(url, headers=header)
+            response = urllib.request.urlopen(request)
+        return response.read().decode()
 
 
     def getHostsFile(self, osType):
         hostsPath = self.__getHostsFilePath(osType)
-        logging.info('append in ' + hostsPath + '...')
-
         url = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
         content = '#---append by python script---#\n'
         content += self.getRaw(url) + '#---append by python script---#'
-
+        logging.info('get hosts data ok!')
         with open(hostsPath,'a+') as f:
+            logging.info('append in ' + hostsPath + '...')
             f.write(content)
         f.close()
         print('everything is ok!')
@@ -62,7 +69,10 @@ class hosts(object):
         elif osType == 'Linux':
             hostsPath = self.hostsPathDict['linux']
         else:
-            hostsPath = raw_input('please input your hosts path: ')
+            try:
+                hostsPath = raw_input('please input your hosts path: ')
+            except:
+                hostsPath = input('please input your hosts path: ')
         return hostsPath
 
 
@@ -76,7 +86,6 @@ if __name__ == '__main__':
         Hosts.getHostsFile(osType)
     except:
         logging.error('no permission to modify the hosts file.')
-        exit()
 
     logging.info('this window will be closed after 5s.')
     time.sleep(5)
