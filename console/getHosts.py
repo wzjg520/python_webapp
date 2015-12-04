@@ -1,7 +1,5 @@
+#coding=utf-8
 __author__ = 'John Wang'
-
-
-#requirement:python2.7
 
 import platform
 import logging
