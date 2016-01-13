@@ -16,6 +16,8 @@ class hosts(object):
         'windows' : 'c:/Windows/System32/drivers/etc/hosts',
         'linux' : '/etc/hosts'
     }
+	
+    hostsList = ''
 
     def __init__(self):
         self.website = 'https://www.wzjg520.com/'
@@ -34,28 +36,36 @@ class hosts(object):
         return response.read().decode()
 
 
-    def getHostsFile(self, osType):
-        hostsPath = self.__getHostsFilePath(osType)
+    def getHostsFile(self):
         url = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
-        content = '#---append by python script---#\n'
-        content += self.getRaw(url) + '#---append by python script---#'
+        logging.info('start connect to hosts server..')
+        self.hostsList = self.getRaw(url)
+        if self.hostsList == '':
+            logging.error('hosts repositories not access')
+            exit()
         logging.info('get hosts data ok!')
+
+	
+    def writeHostsFile(self, osType):
+        hostsPath = self.__getHostsFilePath(osType)
+        content = '#---append by python script---#\n'
+        content += self.hostsList
+        content += '#---append by python script---#'
         with open(hostsPath,'a+') as f:
             logging.info('append in ' + hostsPath + '...')
             f.write(content)
-        f.close()
-        print('everything is ok!')
+
+        logging.info('hosts update!')
+		
 
     def cleanLocalHostsFile(self, osType):
         hostsPath = self.__getHostsFilePath(osType)
         readLocalHosts = open(hostsPath, 'a+')
-
         #get file content
         content = readLocalHosts.read()
         readLocalHosts.close()
         pattern = re.compile('#---append by python script---#[\s\S]*?#---append by python script---#')
         content = pattern.sub('', content)
-
         writeLocalHosts = open(hostsPath, 'w')
         writeLocalHosts.write(content)
         writeLocalHosts.close()
@@ -80,8 +90,9 @@ if __name__ == '__main__':
     osType = platform.system()
     Hosts = hosts()
     try:
+        Hosts.getHostsFile()
         Hosts.cleanLocalHostsFile(osType)
-        Hosts.getHostsFile(osType)
+        Hosts.writeHostsFile(osType)
     except:
         logging.error('no permission to modify the hosts file.')
 
