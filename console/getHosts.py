@@ -16,7 +16,7 @@ class hosts(object):
         'windows' : 'c:/Windows/System32/drivers/etc/hosts',
         'linux' : '/etc/hosts'
     }
-	
+    
     hostsList = ''
 
     def __init__(self):
@@ -45,10 +45,9 @@ class hosts(object):
             exit()
         logging.info('get hosts data ok!')
 
-	
     def writeHostsFile(self, osType):
         hostsPath = self.__getHostsFilePath(osType)
-        content = '#---append by python script---#\n'
+        content = '\n#---append by python script---#\n'
         content += self.hostsList
         content += '#---append by python script---#'
         with open(hostsPath,'a+') as f:
@@ -56,11 +55,10 @@ class hosts(object):
             f.write(content)
 
         logging.info('hosts update!')
-		
 
     def cleanLocalHostsFile(self, osType):
         hostsPath = self.__getHostsFilePath(osType)
-        readLocalHosts = open(hostsPath, 'a+')
+        readLocalHosts = open(hostsPath, 'r')
         #get file content
         content = readLocalHosts.read()
         readLocalHosts.close()
